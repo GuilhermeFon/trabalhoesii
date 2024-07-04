@@ -1,3 +1,6 @@
+# TRABALHO DE ESII 
+# NOMES: Guilherme de Lima Fonseca
+
 import random        # para gerar posições aleatórias
 import time          # controle do tempo 
 import os            # funções de sistema operacional
