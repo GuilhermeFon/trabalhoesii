@@ -1,5 +1,5 @@
 # TRABALHO DE ESII 
-# NOMES: Guilherme de Lima Fonseca, Angelo Frighetto
+# NOMES: Guilherme de Lima Fonseca, Angelo Frighetto, Vitor Fagundes
 
 import random        # para gerar posições aleatórias
 import time          # controle do tempo 
