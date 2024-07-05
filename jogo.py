@@ -1,7 +1,10 @@
+# TRABALHO DE ESII 
+# NOMES: Guilherme de Lima Fonseca, Angelo Frighetto, Vitor Fagundes
+
 import random        # para gerar posições aleatórias
 import time          # controle do tempo 
 import os            # funções de sistema operacional
-from colorama import Fore, Style, init  # para adicionar cores ao texto no console
+from colorama import Fore, init  # para adicionar cores ao texto no console
 
 init(autoreset=True)  # Inicializa o colorama para que a cor do texto volte ao normal automaticamente após cada impressão.
 
@@ -29,8 +32,8 @@ def imprimir_tabuleiro(tabuleiro):
     print("   " + "  ".join(map(str, range(1, len(tabuleiro[0]) + 1))))
     # Imprime os números das colunas.
 
-    for i in range(len(tabuleiro)):
-        print(f"{i+1} " + " ".join(tabuleiro[i]))
+    for i, linha in enumerate(tabuleiro):
+        print(f"{i + 1} " + " ".join(linha))
         # Imprime os números das linhas e o conteúdo do tabuleiro.
 
 
@@ -76,6 +79,51 @@ def revelar_tabuleiro(tabuleiro, tabuleiro_visivel, linha, coluna):
     return reveladas
 
 
+def carregar_ranking():
+    if os.path.isfile("ranking_campo_minado.txt"):
+        with open("ranking_campo_minado.txt", "r") as arq:
+            return arq.readlines()
+    return []
+    # Lê o arquivo de ranking, se existir.
+
+
+def salvar_ranking(jogadores, pontuacoes, tempos):
+    com_jogadores = zip(pontuacoes, tempos, jogadores)
+    ordenados = sorted(com_jogadores, reverse=True)
+    # Ordena os resultados.
+
+    with open("ranking_campo_minado.txt", "w") as arq:
+        for posicao, (pontuacao, tempo, jogador) in enumerate(ordenados, 1):
+            arq.write(f"{jogador};{pontuacao};{tempo:.3f}\n")
+            if jogador == jogadores[-1]:
+                print(Fore.RED + f"{posicao:2d} {jogador:20s} {pontuacao:4d} {tempo:7.3f} seg")
+            else:
+                print(f"{posicao:2d} {jogador:20s} {pontuacao:4d} {tempo:7.3f} seg")
+    # Atualiza e exibe o ranking, destacando o resultado do jogador atual.
+
+
+def processar_ranking(dados):
+    jogadores, pontuacoes, tempos = [], [], []
+    for linha in dados:
+        partes = linha.strip().split(";")
+        jogadores.append(partes[0])
+        pontuacoes.append(int(partes[1]))
+        tempos.append(float(partes[2]))
+    return jogadores, pontuacoes, tempos
+    # Processa o conteúdo do arquivo de ranking.
+
+
+def exibir_ranking(jogadores, pontuacoes, tempos, nome):
+    print("\nNº Nome do Jogador...: Células Tempo......:")
+    print("---------------------------------------------")
+    for posicao, (pontuacao, tempo, jogador) in enumerate(zip(pontuacoes, tempos, jogadores), 1):
+        if jogador == nome:
+            print(Fore.RED + f"{posicao:2d} {jogador:20s} {pontuacao:4d} {tempo:7.3f} seg")
+        else:
+            print(f"{posicao:2d} {jogador:20s} {pontuacao:4d} {tempo:7.3f} seg")
+    # Exibe o ranking, destacando o resultado do jogador atual.
+
+
 def jogar():
     nome = input("Nome do Jogador: ")
     linhas = int(input("Digite o número de linhas do tabuleiro: "))
@@ -105,8 +153,7 @@ def jogar():
             continue
             # Valida a entrada do jogador.
 
-        linha = int(linha_coluna[0]) - 1
-        coluna = int(linha_coluna[1]) - 1
+        linha, coluna = int(linha_coluna[0]) - 1, int(linha_coluna[1]) - 1
         # Converte a entrada do jogador em coordenadas do tabuleiro.
 
         resultado = revelar_tabuleiro(tabuleiro, tabuleiro_visivel, linha, coluna)
@@ -133,43 +180,17 @@ def jogar():
     print(f"Tempo: {duracao:.3f} segundos")
     # Calcula e exibe a duração do jogo e o número de células reveladas.
 
-    # Gerenciamento do ranking
-    if os.path.isfile("ranking_campo_minado.txt"):
-        with open("ranking_campo_minado.txt", "r") as arq:
-            dados = arq.readlines()
-    else:
-        dados = []
-    # Lê o arquivo de ranking, se existir.
-
-    jogadores, pontuacoes, tempos = [], [], []
-
-    for linha in dados:
-        partes = linha.strip().split(";")
-        jogadores.append(partes[0])
-        pontuacoes.append(int(partes[1]))
-        tempos.append(float(partes[2]))
-    # Processa o conteúdo do arquivo de ranking.
+    dados = carregar_ranking()
+    jogadores, pontuacoes, tempos = processar_ranking(dados)
 
     jogadores.append(nome)
     pontuacoes.append(celulas_reveladas)
     tempos.append(duracao)
     # Adiciona o resultado atual ao ranking.
 
-    juntas = sorted(zip(pontuacoes, tempos, jogadores), reverse=True)
-    pontuacoes2, tempos2, jogadores2 = zip(*juntas)
-    # Ordena os resultados.
-
-    print("\nNº Nome do Jogador...: Células Tempo......:")
-    print("---------------------------------------------")
-
-    with open("ranking_campo_minado.txt", "w") as arq:
-        for posicao, (pontuacao, tempo, jogador) in enumerate(zip(pontuacoes2, tempos2, jogadores2), 1):
-            arq.write(f"{jogador};{pontuacao};{tempo:.3f}\n")
-            if jogador == nome:
-                print(Fore.RED + f"{posicao:2d} {jogador:20s} {pontuacao:4d} {tempo:7.3f} seg")
-            else:
-                print(f"{posicao:2d} {jogador:20s} {pontuacao:4d} {tempo:7.3f} seg")
-    # Atualiza e exibe o ranking, destacando o resultado do jogador atual.
+    salvar_ranking(jogadores, pontuacoes, tempos)
+    exibir_ranking(jogadores, pontuacoes, tempos, nome)
+    # Atualiza, salva e exibe o ranking.
 
 
 jogar()
